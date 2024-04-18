@@ -104,6 +104,8 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
         exit(0);
     }
 
+    float a = -acos(Vector3f::dot(sweep[0].N, sweep[sweep.size() - 1].N));
+    float t = a / sweep.size();
 
     for (unsigned i = 0; i < profile.size(); ++i)
     {   
@@ -111,8 +113,8 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
         {   
 
             Matrix4f M = {
-                Vector4f(sweep[j].N, 0.0f),
-                Vector4f(sweep[j].B, 0.0f),
+                Vector4f(cos(j * t) * sweep[j].N + sin(j * t) * sweep[j].B, 0.0f),
+                Vector4f(cos(j * t) * sweep[j].B - sin(j * t) * sweep[j].N, 0.0f),
                 Vector4f(sweep[j].T, 0.0f),
                 Vector4f(sweep[j].V, 1.0f),
             };
