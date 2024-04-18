@@ -7,12 +7,6 @@ const float c_pi = 3.14159265358979323846f;
 
 namespace
 {
-
-    inline bool approx(const Vector3f& lhs, const Vector3f& rhs)
-    {
-	    const float eps = 1e-8f;
-	    return (lhs - rhs).absSquared() < eps;
-    }
     // We're only implenting swept surfaces where the profile curve is
     // flat on the xy-plane.  This is a check function.
     static bool checkFlat(const Curve &profile)
@@ -48,7 +42,7 @@ Surface quad() {
 }
 
 void makeTriangleMeshes(Surface &surface, unsigned m, unsigned n)
-{   
+{      
     for (unsigned i = 0; i < m; ++i) 
     {
         for (unsigned j = 0; j <= n; ++j)
@@ -56,6 +50,8 @@ void makeTriangleMeshes(Surface &surface, unsigned m, unsigned n)
             unsigned k = i * n + j;
             unsigned t = k + n;
 
+            // triangle vertices arranged in a counter clockwise manner
+            // creating triangle strips
             surface.VF.push_back({ k, t + 1, k + 1 });
             surface.VF.push_back({ k + 1, t + 1, t + 2 });
         }
@@ -104,6 +100,7 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
         exit(0);
     }
 
+    // find angle between first and last normal
     float a = -acos(Vector3f::dot(sweep[0].N, sweep[sweep.size() - 1].N));
     float t = a / sweep.size();
 
@@ -111,6 +108,10 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
     {   
         for (unsigned j = 0; j < sweep.size(); ++j)
         {   
+            // smoothly interpolate normal from start to last using
+            // Rodrigues' rotation_formula
+            // https://en.wikipedia.org/wiki/Rodrigues'_rotation_formula
+            // where v = N or B and k = T
 
             Matrix4f M = {
                 Vector4f(cos(j * t) * sweep[j].N + sin(j * t) * sweep[j].B, 0.0f),
@@ -127,8 +128,6 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
 
         }
     }
-
-    // TODO: Here you should build the surface.  See surf.h for details.
 
     makeTriangleMeshes(surface, profile.size(), sweep.size());
 
